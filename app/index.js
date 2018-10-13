@@ -6,11 +6,13 @@
 //Dependencies
 var http = require('http');
 var url = require('url'); 
+var StringDecoder = require('string_decoder').StringDecoder;
 
 
 //The server should respond to all requests with a string
 var server = http.createServer(function(req,res){
 
+    var payloadBuffer = '';
     // Get the URL and parse it
     var parsedUrl = url.parse(req.url, true);
 
@@ -26,6 +28,20 @@ var server = http.createServer(function(req,res){
 
     // Get the Headers as an object
     var headers = req.headers;
+
+    // Get the Payload, if any
+    var decoder = new StringDecoder('utf-8');
+    
+    req.on('data', function(data){
+        payloadBuffer += decoder.write(data);
+    });
+
+    req.on('end', function(){
+        payloadBuffer += decoder.end();
+        
+        console.log('Request was received with this payload: ', payloadBuffer);
+    });
+
     
     // Send the response
     
@@ -38,6 +54,7 @@ var server = http.createServer(function(req,res){
 
     // Log the Header
     console.log('Request received with these Headers: ', headers);
+
 });
 
 //Start the server and have it listen on port 3000
