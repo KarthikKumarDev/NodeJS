@@ -5,13 +5,13 @@
 
 //Dependencies
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var StringDecoder = require('string_decoder').StringDecoder;
 var config = require('./config');
-
-
-//The server should respond to all requests with a string
-var server = http.createServer(function (req, res) {
+var fs = require('fs');
+// Core server logic to be shared between the http and https servers
+var unifiedServerCoreLogic = function (req, res) {
 
     var payloadBuffer = '';
     // Get the URL and parse it
@@ -73,7 +73,7 @@ var server = http.createServer(function (req, res) {
         //     console.log("Returning the response: ", statusCode, payloadString)
         // } 
 
-        
+
         // // Route the request to the handler specified in the router
         // chosenHandler(data, sendResponse);
 
@@ -113,11 +113,30 @@ var server = http.createServer(function (req, res) {
     // Log the Header
     //console.log('Request received with these Headers: ', headers);
 
+}
+
+// Instantiating the https server
+var httpServer = http.createServer(function (req, res) {
+    unifiedServerCoreLogic(req, res);
 });
 
-//Start the server and have it listen on port 3000
-server.listen(config.port, function () {
-    console.log("The server is listening on port "+ config.port+" in "+ config.envName+" now");
+// Instantiating the https server
+var httpsServerOptions = {
+    'key': fs.readFileSync('./https/key.pem'),
+    'cert': fs.readFileSync('./https/cert.perm')
+};
+var httpsServer = https.createServer(httpsServerOptions, function (req, res) {
+    unifiedServerCoreLogic(req, res);
+});
+
+//Start the http server and have it listen on port 3000
+httpServer.listen(config.httpPort, function () {
+    console.log("The server is listening on port " + config.httpPort);
+});
+
+//Start the https server and have it listen on port 3000
+httpsServer.listen(config.httpsPort, function () {
+    console.log("The server is listening on port " + config.httpsPort);
 });
 
 // Define the handlers
@@ -129,8 +148,8 @@ handlers.sample = function (data, callback) {
     callback(406, { 'name': 'sample handler' });
 };
 
-handlers.test = function(data, callback){
-    callback(200, {'status' : 'success' });
+handlers.test = function (data, callback) {
+    callback(200, { 'status': 'success' });
 };
 
 // Not found handler
