@@ -10,6 +10,7 @@ var url = require('url');
 var StringDecoder = require('string_decoder').StringDecoder;
 var config = require('./config');
 var fs = require('fs');
+
 // Core server logic to be shared between the http and https servers
 var unifiedServerCoreLogic = function (req, res) {
 
@@ -51,7 +52,6 @@ var unifiedServerCoreLogic = function (req, res) {
             'headers': headers,
             'payload': payloadBuffer
         };
-
 
         // sendResponse = function (statusCode, payload) {
         //     // Use the status code called back by the handler or default to 200
@@ -100,7 +100,6 @@ var unifiedServerCoreLogic = function (req, res) {
         });
 
     });
-
 
     // Log the payload
     //console.log('Request was received with this payload: ', payloadBuffer);
