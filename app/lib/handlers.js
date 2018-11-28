@@ -40,7 +40,7 @@ handlers._users.post = function (data, callback) {
     var phone = typeof (data.payload.phone) == 'string' && data.payload.phone.trim().length == 10 ? data.payload.phone.trim() : false;
     var password = typeof (data.payload.password) == 'string' && data.payload.password.trim().length > 0 ? data.payload.password.trim() : false;
     var tosAgreement = typeof (data.payload.tosAgreement) == 'boolean' && data.payload.tosAgreement == true ? true : false;
-    
+
     if (firstName && lastName && phone && password && tosAgreement) {
         // Check whether User already exists
         _data.read('users', phone, function (err, data) {
@@ -63,7 +63,6 @@ handlers._users.post = function (data, callback) {
                         if (!err) {
                             callback(200);
                         } else {
-                            console.log(err);
                             callback(500, { 'Error': 'Could not create the new user' });
                         }
                     });
@@ -82,7 +81,26 @@ handlers._users.post = function (data, callback) {
 };
 
 // Users - Get
+// Required Data: Phone
+// Optional Data: none
+// @TODO Only let an authenticated user to access only their object 
 handlers._users.get = function (data, callback) {
+    // Check the validity of phone number
+    var phone = typeof (data.queryStringObject.phone) === 'string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
+    if (phone) {
+        // Lookup the User
+        _data.read('users', phone, function (err, data) {
+            if (!err && data) {
+                // Remove the password from the object
+                delete data.hashedPassword;
+                callback(200, data);
+            } else {
+                callback(404, { 'Error': 'User not exists' });
+            }
+        })
+    } else {
+        callback(400, { 'Error': 'Missing the required field' });
+    }
 
 };
 
@@ -95,8 +113,5 @@ handlers._users.put = function (data, callback) {
 handlers._users.delete = function (data, callback) {
 
 };
-
-
-
 
 module.exports = handlers
